@@ -1,5 +1,7 @@
 name: Gerar APK
 on: [push, workflow_dispatch]
+permissions:
+  contents: write
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -10,6 +12,14 @@ jobs:
         with: { distribution: temurin, java-version: '17' }
       - uses: gradle/actions/setup-gradle@v3
         with: { gradle-version: '8.7' }
-      - run: gradle :app:assembleDebug --no-daemon
+      - run: bash ci.sh
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ultima
+          name: Buffet Board POS
+          make_latest: true
+          files: |
+            saida/BuffetBoardPOS.apk
+            saida/versao.json
       - uses: actions/upload-artifact@v4
-        with: { name: BuffetBoardPOS-apk, path: app/build/outputs/apk/debug/*.apk }
+        with: { name: BuffetBoardPOS-apk, path: saida/BuffetBoardPOS.apk }
