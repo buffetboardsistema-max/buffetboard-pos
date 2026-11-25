@@ -12,7 +12,18 @@ jobs:
         with: { distribution: temurin, java-version: '17' }
       - uses: gradle/actions/setup-gradle@v3
         with: { gradle-version: '8.7' }
+      - name: Chave de assinatura (Secrets)
+        run: |
+          if [ -z "$POS_KEYSTORE_B64" ]; then echo "## ❌ Falta o Secret POS_KEYSTORE_B64" >> $GITHUB_STEP_SUMMARY; exit 1; fi
+          echo "$POS_KEYSTORE_B64" | base64 -d > app/release.jks
+        env:
+          POS_KEYSTORE_B64: ${{ secrets.POS_KEYSTORE_B64 }}
       - run: bash ci.sh
+        env:
+          CIELO_CLIENT_ID: ${{ secrets.CIELO_CLIENT_ID }}
+          CIELO_ACCESS_TOKEN: ${{ secrets.CIELO_ACCESS_TOKEN }}
+          POS_KEYSTORE_PASS: ${{ secrets.POS_KEYSTORE_PASS }}
+          POS_PING_KEY: ${{ secrets.POS_PING_KEY }}
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ultima
