@@ -15,9 +15,12 @@ jobs:
       - name: Chave de assinatura (Secrets)
         run: |
           if [ -z "$POS_KEYSTORE_B64" ]; then echo "## ❌ Falta o Secret POS_KEYSTORE_B64" >> $GITHUB_STEP_SUMMARY; exit 1; fi
-          echo "$POS_KEYSTORE_B64" | base64 -d > app/release.jks
+          printf '%s' "$POS_KEYSTORE_B64" | tr -d ' \r\n\t' | base64 -d > app/release.jks
+          P=$(printf '%s' "$POS_KEYSTORE_PASS" | tr -d ' \r\n\t')
+          if ! keytool -list -keystore app/release.jks -storepass "$P" -alias bbpos >/dev/null 2>&1; then echo "## ❌ Chave não abriu: confira POS_KEYSTORE_B64 (linha inteira) e POS_KEYSTORE_PASS" >> $GITHUB_STEP_SUMMARY; exit 1; fi
         env:
           POS_KEYSTORE_B64: ${{ secrets.POS_KEYSTORE_B64 }}
+          POS_KEYSTORE_PASS: ${{ secrets.POS_KEYSTORE_PASS }}
       - run: bash ci.sh
         env:
           CIELO_CLIENT_ID: ${{ secrets.CIELO_CLIENT_ID }}
